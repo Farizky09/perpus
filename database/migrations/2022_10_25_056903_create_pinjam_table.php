@@ -15,9 +15,11 @@ return new class extends Migration
     {
         Schema::create('pinjam', function (Blueprint $table) {
             $table->id();
-            $table->string('kdPinjam');
-            $table->foreignId('id_anggota')->constraint('anggota');
-            $table->foreignId('id_buku')->constraint('buku');
+            $table->string('kdPinjam');            
+            $table->string('kdAnggota');
+            $table->foreign('kdAnggota')->references('kdAnggota')->on('anggota');
+            $table->string('kdBuku');
+            $table->foreign('kdBuku')->references('kdBuku')->on('buku');
             $table->date('tgl_pinjam');
             $table->date('tgl_balikin')->nullable();
             $table->date('tgl_mengembalikan')->nullable();

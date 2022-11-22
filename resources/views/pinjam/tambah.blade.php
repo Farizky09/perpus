@@ -7,10 +7,10 @@
         <input type="text" name="nomor" readonly value="{{ $pinjam->nomor }}">
         <br>
         @endforeach  --}}
-        Nama Anggota :
-        <input type="text" name="id_anggota">
-Judul Buku :
-<input type="text" name="id_buku">
+    Nama Anggota :
+    <input type="text" name="kdAnggota">
+    Judul Buku :
+    <input type="text" name="kdBuku">
 
 
     <input type="submit" value="simpan">

@@ -142,8 +142,8 @@ class PinjamController extends Controller
     {
         $user = Auth::user();
         if ($user->role == 'siswa') {
-            $pinjam = Pinjam::join('anggota', 'anggota.id', '=', 'pinjam.id_anggota')
-                ->join('buku', 'buku.id', '=', 'pinjam.id_buku')
+            $pinjam = Pinjam::join('anggota', 'anggota.kdAnggota', '=', 'pinjam.kdAnggota')
+                ->join('buku', 'buku.kdBuku', '=', 'pinjam.kdBuku')
                 ->select('pinjam.*', 'buku.judul_buku', 'anggota.nama_anggota',)
                 ->get();
             //return $pinjam;
@@ -151,25 +151,25 @@ class PinjamController extends Controller
             $pinjam = Pinjam::all();
         }
         return view('pinjam.index', compact(['pinjam']));
-        //     $pinjam = Pinjam::join('anggota','anggota.id_anggota','=','pinjam.id_anggota')
-        //     ->join('buku','buku.id_buku','=','pinjam.id_buku')
+        //     $pinjam = Pinjam::join('anggota','anggota.kdAnggota','=','pinjam.kdAnggota')
+        //     ->join('buku','buku.kdBuku','=','pinjam.kdBuku')
         //    ->get();
 
     }
 
     public function tambahPinjam()
     {
-        $pinjam = Pinjam::join('anggota', 'anggota.id', '=', 'pinjam.id_anggota')
-                ->join('buku', 'buku.id', '=', 'pinjam.id_buku')
-                ->select('pinjam.*', 'buku.judul_buku', 'anggota.nama_anggota',)
-                ->get();
-        return view('pinjam.tambah', compact(['pinjam']));
+        // $pinjam = Pinjam::join('anggota', 'anggota.id', '=', 'pinjam.kdAnggota')
+        //         ->join('buku', 'buku.id', '=', 'pinjam.kdBuku')
+        //         ->select('pinjam.*', 'buku.judul_buku', 'anggota.nama_anggota',)
+        //         ->get();
+        return view('pinjam.tambah');
     }
     //     public function simpanPinjam(Request $request)
     //     {
     //         $admin = Auth::user()->id;
-    //         $wong = $request->id_anggota;
-    //         $idbuku = $request->id_buku;
+    //         $wong = $request->kdAnggota;
+    //         $idbuku = $request->kdBuku;
     //         $tgl = $request->tgl_pinjam;
     //         $waktuSekarang = date('Y/m/d');
     //         $awal = strtotime($waktuSekarang);
@@ -192,8 +192,8 @@ class PinjamController extends Controller
     //         $kdPinjam = $p . $waktuSekarang . "/" . $admin . "/" . $wong . "/" . $idbuku . "/" . $ke;
     //          Pinjam::create([
     //             'kdPinjam' => $kdPinjam,
-    //             'id_anggota' => $wong,
-    //             'id_buku' => $idbuku,
+    //             'kdAnggota' => $wong,
+    //             'kdBuku' => $idbuku,
     //             'tgl_pinjam' => $waktuSekarang,
     //             'tgl_balikin' => $from_date->toDateTimeString(),
     //             'tgl_mengembalikan' => $request->tgl_mengembalikan,
@@ -202,8 +202,8 @@ class PinjamController extends Controller
     //             'jml' => $sanksi,
     //         ]);
     //         $pinjam = Pinjam::where('pinjam.id', $id)
-    //             ->join('anggota', 'anggota.id', '=', 'pinjam.id_anggota')
-    //             ->join('buku', 'buku.id', '=', 'pinjam.id_buku')
+    //             ->join('anggota', 'anggota.id', '=', 'pinjam.kdAnggota')
+    //             ->join('buku', 'buku.id', '=', 'pinjam.kdBuku')
     //             ->select('pinjam.*', 'buku.judul_buku', 'anggota.nama_anggota',)
     //             ->get();
     //            // return $pinjam;
@@ -216,43 +216,51 @@ class PinjamController extends Controller
     {
         $tgl = date('Ymd');
         $s = date('s');
-        $anggota = $request->id_anggota;
-        $buku = $request->id_buku;
+        $anggota = $request->kdAnggota;
+        $buku = $request->kdBuku;
         $idAdmin = Auth::user()->id;
         $kdPinjam = $anggota . "/" . $tgl . "/" . $s;
+        $cekAnggota = Anggota::where('kdAnggota', $anggota)->count();
+        $cekBuku = Buku::where('kdBuku', $buku)->count();
+        if ($cekAnggota > 0) {
+        if ($cekBuku > 0) {
+            $pinjam = Pinjam::where('kdAnggota', $anggota)->where('kdBuku', $buku)->where('status', 'pinjam')->count();
+            if ($pinjam == 0) {
+                
+                $batas = Batasan::all();
+                $meminjam = strtotime($tgl);
+                $lama = $batas[0]->lama;
+                $kembali = Carbon::now()->addDays($lama);
+                // $kembali = date('Ymd', strtotime(('+' . $lama . 'days' . $meminjam)));
+                $request->session()->put('kembali', $kembali);
 
-        $pinjam = Pinjam::where('id_anggota', $anggota)->where('id_buku', $buku)->where('status', 'pinjam')->count();
-        if ($pinjam == 0) {
-            Pinjam::create([
-                'kdPinjam' => $kdPinjam,
-                'tgl_pinjam' => $tgl,
-                'id_anggota' => $anggota,
-                'id_buku' => $buku,
-                // 'tgl_balikin' => $kembali,
-                'status' => 'pinjam'
-            ]);
+                Pinjam::create([
+                    'kdPinjam' => $kdPinjam,
+                    'tgl_pinjam' => $tgl,
+                    'kdAnggota' => $anggota,
+                    'kdBuku' => $buku,
+                     'tgl_balikin' => $kembali,
+                    'status' => 'pinjam'
+                ]);
 
-            $pinjam = Pinjam::where('kdPinjam', $kdPinjam)
-                ->join('anggota', 'anggota.id', '=', 'pinjam.id_anggota')
-                ->join('buku', 'buku.id', '=', 'pinjam.id_buku')
-                ->select('pinjam.*', 'nama_anggota', 'judul_buku')
-                ->get();
+                $pinjam = Pinjam::where('kdPinjam', $kdPinjam)
+                    ->join('anggota', 'anggota.kdAnggota', '=', 'pinjam.kdAnggota')
+                    ->join('buku', 'buku.kdBuku`', '=', 'pinjam.kdBuku')
+                    ->select('pinjam.*', 'nama_anggota', 'judul_buku')
+                    ->get();
 
-            $batas = Batasan::all();
-            $meminjam = strtotime($tgl);
-            $lama = $batas[0]->lama;
-            $kembali = Carbon::now()->addDays($lama);
-            // $kembali = date('Ymd', strtotime(('+' . $lama . 'days' . $meminjam)));
-            $request->session()->put('kembali', $kembali);
-
-
-
-
-            return view('pinjam.bukti', ['pinjam' => $pinjam, 'batas' => $kembali]);
+                return view('pinjam.bukti', ['pinjam' => $pinjam, 'batas' => $kembali]);
+            } else {
+                echo "anggota dengan kode" . $anggota . "telah meminjam buku dengan kode " . $buku;
+            }
         } else {
-            echo "anggota dengan kode" . $anggota . "telah meminjam buku dengan kode " . $buku;
+            echo "Anggota tidak ditemukan";
         }
+            
+        }else{
+            echo "Buku tidak ditemukan";
     }
+}
 
     public function editPinjam($id)
     {
@@ -281,21 +289,24 @@ class PinjamController extends Controller
     // {
 
     //     $pinjam = Pinjam::query()
-    //         ->join('anggota', 'anggota.id', '=', 'pinjam.id_anggota')
-    //         ->join('buku', 'buku.id', '=', 'pinjam.id_buku')
+    //         ->join('anggota', 'anggota.id', '=', 'pinjam.kdAnggota')
+    //         ->join('buku', 'buku.id', '=', 'pinjam.kdBuku')
     //         ->select('pinjam.*', 'buku.judul_buku', 'anggota.nama_anggota',)
     //         ->get();
     //     return view('pinjam.balik', ['pinjam' => $pinjam]);
     // }
     public function cari(Request $request)
     {
-        $cari = $request->cari;
+        return $request;
+        $cari = $request->kdPinjam;
         $pinjam = DB::table('pinjam')
-            ->where('nomor', 'like', "%" . $cari . "%")
-            ->select('pinjam.*', 'buku.judul_buku', 'anggota.nama_anggota',)
-            ->paginate();
-        // return $pinjam;
-        return view('pinjam.balik', ['pinjam' => $pinjam, 'cari' => $cari]);
+        ->join('anggota', 'anggota.kdAnggota', '=', 'pinjam.kdAnggota')
+        ->join('buku', 'buku.kdBuku', '=', 'pinjam.kdBuku')
+        ->where('kdPinjam', $cari )
+        ->select('pinjam.*', 'buku.judul_buku', 'anggota.nama_anggota',)
+            ->get();
+       // return $pinjam;
+        return view('pinjam.kembali', ['pinjam' => $pinjam, 'cari' => $cari]);
     }
 
     public function tambahBatasan()
@@ -332,8 +343,8 @@ class PinjamController extends Controller
         $data = Pinjam::where('kdPinjam', $kode)->count();
         if ($data == 0) {
             $pinjam = Pinjam::where('kdPinjam', $kode)
-                ->join('anggota', 'anggota.id', '=', 'pinjam.id_anggota')
-                ->join('buku', 'buku.id', '=', 'pinjam.id_buku')
+                ->join('anggota', 'anggota.id', '=', 'pinjam.kdAnggota')
+                ->join('buku', 'buku.id', '=', 'pinjam.kdBuku')
                 ->select('pinjam.*', 'nama_anggota', 'judul_buku')
                 ->get();
             return view('pinjam.kembali', ['pinjam' => $pinjam]);
