@@ -1,5 +1,12 @@
 <form action="/buku/store" method="POST">
 @csrf
+<?php
+$s = date('s');
+$p = date('Ymd');
+$kdBuku = "BUK"."/".$p."/".$s;
+?>
+kode Buku :
+<input type="text" name="kdBuku" value="{{$kdBuku}}" readonly><br>
 judul_buku :
 <input type="text" name="judul_buku"><br>
 nama_pengarang :

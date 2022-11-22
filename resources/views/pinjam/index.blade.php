@@ -4,6 +4,7 @@
 <button><a href="/pinjam/create">Tambah</a></button>
 <button><a href="/pinjam/balik">Balikin</a></button>
 <button><a href="/buku">buku</a></button>
+<button><a href="/batas">Batas</a></button>
 <button><a href="/anggota">anggota</a></button><hr>
 <form action="{{ route('logout') }}" method="POST">
     @csrf
@@ -34,7 +35,7 @@ this.closest('form').submit();"
     @foreach ($pinjam as $pinjam )
     <tr>
         <td>{{$pinjam->id}}</td>
-        <td>{{$pinjam->nomor}}</td>
+        <td>{{$pinjam->kdPinjam}}</td>
         <td>{{$pinjam->nama_anggota}}</td>
         <td>{{$pinjam->judul_buku}}</td>
         <td>{{$pinjam->tgl_pinjam}}</td>

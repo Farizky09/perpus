@@ -1,6 +1,14 @@
 <form action="/anggota/store" method="POST">
     @csrf
 
+    <?php
+    $s = date('s');
+    $p = date('Ymd');
+    $ke = $p +1;
+    $kdAnggota = "agt"."/".$p."/".$s;
+    ?>
+    kode anggota :
+    <input type="text" name="kdAnggota" value="{{$kdAnggota}}" readonly><br>
 nama_anggota :
 <input type="text" name="nama_anggota"><br>
 jk_anggota :

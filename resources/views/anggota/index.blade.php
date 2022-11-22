@@ -3,6 +3,7 @@
 <table>
     <tr>
         <th>id</th>
+        <th>kode anggota</th>
         <th>nama_anggota</th>
         <th>jk_anggota</th>
         <th>nohp_anggota</th>
@@ -12,6 +13,7 @@
     @foreach ($anggota as $anggota )
     <tr>
         <td>{{$anggota->id}}</td>
+        <td>{{$anggota->kdAnggota}}</td>
         <td>{{$anggota->nama_anggota}}</td>
         <td>{{$anggota->jk_anggota}}</td>
         <td>{{$anggota->nohp_anggota}}</td>

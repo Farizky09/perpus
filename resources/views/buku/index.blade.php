@@ -3,6 +3,7 @@
 <table>
     <tr>
         <th>id</th>
+        <th>Kode Buku</th>
         <th>judul_buku</th>
         <th>nama_pengarang</th>
         <th>nama_penerbit</th>
@@ -12,6 +13,7 @@
     @foreach ($buku as $buku )
     <tr>
         <td>{{$buku->id}}</td>
+        <td>{{$buku->kdBuku}}</td>
         <td>{{$buku->judul_buku}}</td>
         <td>{{$buku->nama_pengarang}}</td>
         <td>{{$buku->nama_penerbit}}</td>
