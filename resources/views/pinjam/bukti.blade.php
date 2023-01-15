@@ -5,7 +5,7 @@
     <table>
         <tr>
             <td>tanggal Pinjam</td>
-            <td>{{date('Ymd')}}</td>
+            <td>{{$pinjam->tgl_pinjam}}</td>
         </tr>
         <tr>
             <td>Nama peminjam :</td>
@@ -18,7 +18,7 @@
 
         <tr>
             <td> Harus kembali</td>
-            <td>{{ Session::get('kembali') }}</td>
+            <td>{{ $pinjam->tgl_balikin }}</td>
         </tr>
         <tr>
             <td>Petugas</td><br>
@@ -29,4 +29,5 @@
 
     </table>
     @endforeach
+    <a href="/pinjam">kembali</a>
 </div>

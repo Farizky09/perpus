@@ -9,6 +9,7 @@ use App\Models\Kategori;
 use App\Models\Pinjam;
 use App\Models\User;
 use Carbon\Carbon;
+use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -226,7 +227,7 @@ class PinjamController extends Controller
         if ($cekBuku > 0) {
             $pinjam = Pinjam::where('kdAnggota', $anggota)->where('kdBuku', $buku)->where('status', 'pinjam')->count();
             if ($pinjam == 0) {
-                
+
                 $batas = Batasan::all();
                 $meminjam = strtotime($tgl);
                 $lama = $batas[0]->lama;
@@ -245,9 +246,10 @@ class PinjamController extends Controller
 
                 $pinjam = Pinjam::where('kdPinjam', $kdPinjam)
                     ->join('anggota', 'anggota.kdAnggota', '=', 'pinjam.kdAnggota')
-                    ->join('buku', 'buku.kdBuku`', '=', 'pinjam.kdBuku')
+                    ->join('buku', 'buku.kdBuku', '=', 'pinjam.kdBuku')
                     ->select('pinjam.*', 'nama_anggota', 'judul_buku')
                     ->get();
+
 
                 return view('pinjam.bukti', ['pinjam' => $pinjam, 'batas' => $kembali]);
             } else {
@@ -256,7 +258,7 @@ class PinjamController extends Controller
         } else {
             echo "Anggota tidak ditemukan";
         }
-            
+
         }else{
             echo "Buku tidak ditemukan";
     }
@@ -297,15 +299,25 @@ class PinjamController extends Controller
     // }
     public function cari(Request $request)
     {
-        return $request;
+
         $cari = $request->kdPinjam;
         $pinjam = DB::table('pinjam')
-        ->join('anggota', 'anggota.kdAnggota', '=', 'pinjam.kdAnggota')
-        ->join('buku', 'buku.kdBuku', '=', 'pinjam.kdBuku')
+
         ->where('kdPinjam', $cari )
-        ->select('pinjam.*', 'buku.judul_buku', 'anggota.nama_anggota',)
-            ->get();
-       // return $pinjam;
+
+            ->count();
+if($pinjam >0){
+$pinjam = DB::table('pinjam')
+->join('anggota', 'anggota.kdAnggota', '=', 'pinjam.kdAnggota')
+->join('buku', 'buku.kdBuku', '=', 'pinjam.kdBuku')
+->where('kdPinjam', $cari )
+->select('pinjam.*', 'buku.judul_buku', 'anggota.nama_anggota',)
+    ->first();
+}else{
+    echo 'data kosong';
+    return;
+}
+
         return view('pinjam.kembali', ['pinjam' => $pinjam, 'cari' => $cari]);
     }
 
@@ -339,17 +351,48 @@ class PinjamController extends Controller
     }
     public function prosesKembali(Request $request)
     {
-        $kode = $request->kode;
-        $data = Pinjam::where('kdPinjam', $kode)->count();
-        if ($data == 0) {
+        $batas = Batasan::first();
+        $tgl = date('Ymd')+10;
+        $kode = $request->kdPinjam;
+        $dataPinjam = Pinjam::where('kdPinjam', $kode)->first();
+        $tglConvert =  date('Ymd', strtotime($dataPinjam->tgl_balikin));
+        $diff =  $tglConvert - $tgl;
+        $convertToPositive = abs($diff);
+        $jml= $convertToPositive *$batas->denda;
+
+        if($diff < 0){
+            $convertToPositive = abs($diff);
+                Pinjam::where('kdPinjam', $kode)->update([
+                    'status' => 'tersedia',
+                    'tgl_mengembalikan' => $tgl,
+                    'denda' => $batas->denda,
+                    'jml'=> $jml
+                ]);
+                $pinjam = Pinjam::where('kdPinjam', $kode)
+                    ->join('anggota', 'anggota.kdAnggota', '=', 'pinjam.kdAnggota')
+                    ->join('buku', 'buku.kdBuku', '=', 'pinjam.kdBuku')
+                    ->select('pinjam.*', 'nama_anggota', 'judul_buku')
+                    ->first();
+                return redirect('/pinjam');
+
+        }else{
+            Pinjam::where('kdPinjam', $kode)->update([
+                'status' => 'tersedia',
+                'tgl_mengembalikan' => $tgl,
+                'jml' => 0
+            ]);
             $pinjam = Pinjam::where('kdPinjam', $kode)
-                ->join('anggota', 'anggota.id', '=', 'pinjam.kdAnggota')
-                ->join('buku', 'buku.id', '=', 'pinjam.kdBuku')
+                ->join('anggota', 'anggota.kdAnggota', '=', 'pinjam.kdAnggota')
+                ->join('buku', 'buku.kdBuku', '=', 'pinjam.kdBuku')
                 ->select('pinjam.*', 'nama_anggota', 'judul_buku')
-                ->get();
-            return view('pinjam.kembali', ['pinjam' => $pinjam]);
-        } else {
-            echo "data kosong";
+                ->first();
+            return redirect('/pinjam');
         }
+
     }
+
+    public function formBalik(){
+        return view('pinjam.kembali', ['pinjam' => null]);
+    }
+
 }

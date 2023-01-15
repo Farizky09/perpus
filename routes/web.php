@@ -57,8 +57,9 @@ Route::post('/pinjam/update/{id}', [PinjamController::class,'updatePinjam']);
 Route::get('/pinjam/delete/{id}', [PinjamController::class,'hapusPinjam']);
 Route::get('/pinjam/bukti/', [PinjamController::class,'buktiPinjam']);
 
+Route::get('/pinjam/formBalik', [PinjamController::class,'formBalik']);
 Route::get('/pinjam/cari', [PinjamController::class,'cari']);
-Route::get('/pinjam/balik', [PinjamController::class,'prosesKembali']);
+Route::post('/pinjam/balik', [PinjamController::class,'prosesKembali']);
 
 Route::get('/batas', [PinjamController::class,'tambahBatasan']);
 Route::post('/batas/simpan', [PinjamController::class,'simpanBatasan']);
