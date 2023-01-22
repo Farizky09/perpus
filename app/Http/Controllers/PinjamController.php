@@ -9,6 +9,7 @@ use App\Models\Kategori;
 use App\Models\Pinjam;
 use App\Models\User;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -62,6 +63,7 @@ class PinjamController extends Controller
     public function indexBuku()
     {
         $buku = Buku::all();
+        // return $buku;
         return view('buku.index', ['buku' => $buku]);
     }
 
@@ -151,7 +153,7 @@ class PinjamController extends Controller
         } else {
             $pinjam = Pinjam::all();
         }
-        return view('pinjam.index', compact(['pinjam']));
+        return view('pinjam.index', compact(['pinjam']), [ 'type_menu' => 'dashboard']);
         //     $pinjam = Pinjam::join('anggota','anggota.kdAnggota','=','pinjam.kdAnggota')
         //     ->join('buku','buku.kdBuku','=','pinjam.kdBuku')
         //    ->get();
@@ -225,7 +227,7 @@ class PinjamController extends Controller
         $cekBuku = Buku::where('kdBuku', $buku)->count();
         if ($cekAnggota > 0) {
         if ($cekBuku > 0) {
-            $pinjam = Pinjam::where('kdAnggota', $anggota)->where('kdBuku', $buku)->where('status', 'pinjam')->count();
+            $pinjam = Pinjam::where('kdBuku', $buku)->where('status', 'pinjam')->count();
             if ($pinjam == 0) {
 
                 $batas = Batasan::all();
@@ -251,7 +253,7 @@ class PinjamController extends Controller
                     ->get();
 
 
-                return view('pinjam.bukti', ['pinjam' => $pinjam, 'batas' => $kembali]);
+                return view('/pinjam');
             } else {
                 echo "anggota dengan kode" . $anggota . "telah meminjam buku dengan kode " . $buku;
             }
@@ -352,7 +354,7 @@ $pinjam = DB::table('pinjam')
     public function prosesKembali(Request $request)
     {
         $batas = Batasan::first();
-        $tgl = date('Ymd')+10;
+        $tgl = date('Ymd');
         $kode = $request->kdPinjam;
         $dataPinjam = Pinjam::where('kdPinjam', $kode)->first();
         $tglConvert =  date('Ymd', strtotime($dataPinjam->tgl_balikin));
@@ -393,6 +395,18 @@ $pinjam = DB::table('pinjam')
 
     public function formBalik(){
         return view('pinjam.kembali', ['pinjam' => null]);
+    }
+
+    public function cetakBukti($id){
+        $pinjam = DB::table('pinjam')
+->join('anggota', 'anggota.kdAnggota', '=', 'pinjam.kdAnggota')
+->join('buku', 'buku.kdBuku', '=', 'pinjam.kdBuku')
+->where('pinjam.id', $id )
+->select('pinjam.*', 'buku.judul_buku', 'anggota.nama_anggota',)
+    ->first();
+        $pdf = Pdf::loadView('pinjam.cetak-bukti', ['pinjam' => $pinjam]);
+        return $pdf->stream('cetak-bukti.pdf');
+
     }
 
 }

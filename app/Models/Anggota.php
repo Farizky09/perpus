@@ -11,7 +11,7 @@ class Anggota extends Model
     protected $table = 'anggota';
     protected $guarded = [''];
     public $timestamp = false;
-    public $primaryKey = 'id_anggota';
+    public $primaryKey = 'id';
 
 
 }

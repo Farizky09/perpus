@@ -11,5 +11,5 @@ class Buku extends Model
     protected $table = 'buku';
     protected $guarded = [''];
     public $timestamp = false;
-    public $primaryKey = 'id_buku';
+    public $primaryKey = 'id';
 }

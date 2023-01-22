@@ -63,3 +63,5 @@ Route::post('/pinjam/balik', [PinjamController::class,'prosesKembali']);
 
 Route::get('/batas', [PinjamController::class,'tambahBatasan']);
 Route::post('/batas/simpan', [PinjamController::class,'simpanBatasan']);
+
+Route::get('/cetakBukti/{id}', [PinjamController::class, 'cetakBukti']);
